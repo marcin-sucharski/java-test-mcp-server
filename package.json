@@ -1,0 +1,41 @@
+{
+  "name": "java-test-mcp-server",
+  "version": "0.0.1",
+  "description": "MCP server for running Java tests",
+  "author": "Marcin Sucharski",
+  "license": "ISC",
+  "type": "module",
+  "main": "build/index.js",
+  "scripts": {
+    "build": "tsc && chmod 755 build/index.js",
+    "dev": "npx @modelcontextprotocol/inspector node build/index.js test_config.json",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "java",
+    "surefire"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marcin-sucharski/java-test-mcp-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/marcin-sucharski/java-test-mcp-server/issues"
+  },
+  "homepage": "https://github.com/marcin-sucharski/java-test-mcp-server#readme",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.7.0",
+    "fast-xml-parser": "^5.0.9",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "typescript": "^5.8.2"
+  },
+  "files": [
+    "build/**/*"
+  ]
+}
