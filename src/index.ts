@@ -13,7 +13,7 @@ async function main() {
     
     const server = new McpServer({
         name: "java-test-mcp-server",
-        version: "0.0.3",
+        version: "0.0.4",
     });
 
     server.tool(
@@ -58,7 +58,7 @@ async function main() {
 
                 if (checkstyleViolations.length > 0) {
                     responseText += "# Checkstyle violations:\n\n";
-                    checkstyleViolations.forEach(violation => {
+                    checkstyleViolations.filter(violation => violation.severity === "error").forEach(violation => {
                         responseText += `${violation.fileName}:${violation.line} - ${violation.severity}: ${violation.message}\n`;
                     });
                 }
