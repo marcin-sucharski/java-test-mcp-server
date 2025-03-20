@@ -26,6 +26,10 @@ describe('SurefireReportParser', () => {
       expect(testSubtractFail?.failureDetails).toContain('java.lang.AssertionError');
       expect(testSubtractFail?.failureDetails).toContain('at com.example.app.CalculatorTest.testSubtractFail');
       
+      expect(testSubtractFail?.output.stderr).toBeDefined();
+      expect(testSubtractFail?.output.stderr).toContain('Subtracting numbers: 5 - 2');
+      expect(testSubtractFail?.output.stderr).toContain('Result of subtraction: 3');
+      
       const testAddSuccess = results.find(test => 
         test.name === 'testAddSuccess' && 
         test.className === 'com.example.app.CalculatorTest'
@@ -35,6 +39,10 @@ describe('SurefireReportParser', () => {
       expect(testAddSuccess?.success).toBe(true);
       expect(testAddSuccess?.failureReason).toBeUndefined();
       expect(testAddSuccess?.failureDetails).toBeUndefined();
+      
+      expect(testAddSuccess?.output.stderr).toBeDefined();
+      expect(testAddSuccess?.output.stderr).toContain('Adding numbers: 2 + 3');
+      expect(testAddSuccess?.output.stderr).toContain('Result of addition: 5');
     });
   });
   

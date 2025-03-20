@@ -9,6 +9,10 @@ export interface TestReportEntry {
     success: boolean;
     failureReason?: string;
     failureDetails?: string;
+    output: {
+        stdout?: string;
+        stderr?: string;
+    };
 }
 
 interface XmlTestCase {
@@ -18,6 +22,8 @@ interface XmlTestCase {
         message?: string;
         "#text"?: string;
     } | string;
+    "system-out"?: string;
+    "system-err"?: string;
 }
 
 export class SurefireReportParser {
@@ -77,7 +83,11 @@ export class SurefireReportParser {
                     className: testcase.classname,
                     success: !hasFailure,
                     failureReason,
-                    failureDetails
+                    failureDetails,
+                    output: {
+                        stdout: testcase["system-out"],
+                        stderr: testcase["system-err"]
+                    }
                 };
             });
         } catch (error) {

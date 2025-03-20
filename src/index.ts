@@ -22,7 +22,7 @@ async function main() {
         + "To include specific tests always in output (to e.g. check if test has been executed), specify showAlways parameter."
         + "If you want to get the full test output, use the get-test-output tool.",
         {
-            projectRoot: z.string().optional().describe("Override project root"),
+            projectRoot: z.string().optional().describe("Override project root. If there are multiple projects in the root, specify the subdirectory."),
             showAlways: z.array(z.string()).optional().describe("List of test names (method name in Java) to include in output even upon success")
         },
         async (params) => {
@@ -116,7 +116,7 @@ async function main() {
         "get-test-output",
         "Get full test stdout output. Use this after run-tests if this output is needed for debugging.",
         {
-            projectRoot: z.string().optional().describe("Override project root"),
+            projectRoot: z.string().optional().describe("Override project root. If there are multiple projects in the root, specify the subdirectory."),
             className: z.string().describe("Name of the class to get output for"),
             testName: z.string().describe("Name of the test to get output for")
         },
@@ -130,11 +130,34 @@ async function main() {
                 const testResults = reportParser.parseReports();
                 
                 const testResult = testResults.find(test => test.name === testName && test.className === className);
+                if (!testResult) {
+                    const availableTests = testResults.map(test => `${test.className}.${test.name}`).join("\n");
+                    return {
+                        content: [
+                            {
+                                type: "text",
+                                text: `Test ${testName} in class ${className} not found. Available tests:\n${availableTests}`
+                            }
+                        ]
+                    };
+                }
+                
+                let response = `Test output for ${className}.${testName}:\n`;
+                if (testResult.output.stdout) {
+                    response += `\nSTDOUT:\n${testResult.output.stdout}`;
+                }
+                if (testResult.output.stderr) {
+                    response += `\nSTDERR:\n${testResult.output.stderr}`;
+                }
+                if (!testResult.output.stdout && !testResult.output.stderr) {
+                    response += "\nNo output.";
+                }
+
                 return {
                     content: [
                         {
                             type: "text",
-                            text: "Test output functionality not fully implemented yet."
+                            text: response
                         }
                     ]
                 };
