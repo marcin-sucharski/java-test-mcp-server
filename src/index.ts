@@ -13,7 +13,7 @@ async function main() {
     
     const server = new McpServer({
         name: "java-test-mcp-server",
-        version: "0.0.1",
+        version: "0.0.2",
     });
 
     server.tool(
