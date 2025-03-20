@@ -8,6 +8,7 @@ export interface TestReportEntry {
     className: string;
     success: boolean;
     failureReason?: string;
+    failureStackTrace?: string;
 }
 
 interface XmlTestCase {
@@ -15,6 +16,7 @@ interface XmlTestCase {
     classname: string;
     failure?: {
         message?: string;
+        "#text"?: string;
     } | string;
 }
 
@@ -59,18 +61,23 @@ export class SurefireReportParser {
             return testcases.map((testcase: XmlTestCase) => {
                 const hasFailure = !!testcase.failure;
                 let failureReason: string | undefined = undefined;
+                let failureStackTrace: string | undefined = undefined;
                 
                 if (hasFailure) {
-                    failureReason = testcase.failure && typeof testcase.failure === 'object' && testcase.failure.message 
-                        ? testcase.failure.message 
-                        : (typeof testcase.failure === 'string' ? testcase.failure : undefined);
+                    if (typeof testcase.failure === 'object') {
+                        failureReason = testcase.failure.message;
+                        failureStackTrace = testcase.failure["#text"];
+                    } else if (typeof testcase.failure === 'string') {
+                        failureReason = testcase.failure;
+                    }
                 }
                 
                 return {
                     name: testcase.name,
                     className: testcase.classname,
                     success: !hasFailure,
-                    failureReason
+                    failureReason,
+                    failureStackTrace
                 };
             });
         } catch (error) {

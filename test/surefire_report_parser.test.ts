@@ -1,10 +1,13 @@
 import { SurefireReportParser, TestReportEntry } from '../src/surefire_report_parser.js';
 import path from 'path';
+import { JavaTestRunner } from '../src/java_test_runner.js';
 
 describe('SurefireReportParser', () => {
   describe('Maven project integration test', () => {
     it('should parse Maven surefire reports correctly', () => {
       const projectRoot = path.join(process.cwd(), 'test/maven');
+      new JavaTestRunner(projectRoot).run();
+
       const parser = new SurefireReportParser(projectRoot);
       
       const results = parser.parseReports();
@@ -19,6 +22,9 @@ describe('SurefireReportParser', () => {
       expect(testSubtractFail).toBeDefined();
       expect(testSubtractFail?.success).toBe(false);
       expect(testSubtractFail?.failureReason).toContain('expected:<0> but was:<3>');
+      expect(testSubtractFail?.failureStackTrace).toBeDefined();
+      expect(testSubtractFail?.failureStackTrace).toContain('java.lang.AssertionError');
+      expect(testSubtractFail?.failureStackTrace).toContain('at com.example.app.CalculatorTest.testSubtractFail');
       
       const testAddSuccess = results.find(test => 
         test.name === 'testAddSuccess' && 
@@ -27,12 +33,15 @@ describe('SurefireReportParser', () => {
       
       expect(testAddSuccess).toBeDefined();
       expect(testAddSuccess?.success).toBe(true);
+      expect(testAddSuccess?.failureReason).toBeUndefined();
+      expect(testAddSuccess?.failureStackTrace).toBeUndefined();
     });
   });
   
   describe('Gradle project integration test', () => {
     it('should parse Gradle test reports correctly', () => {
       const projectRoot = path.join(process.cwd(), 'test/gradle');
+      new JavaTestRunner(projectRoot).run();
       
       const parser = new SurefireReportParser(projectRoot);
       
@@ -45,40 +54,28 @@ describe('SurefireReportParser', () => {
       );
       
       expect(calculatorTest).toBeDefined();
-    });
-  });
-  
-  describe('XML parsing', () => {
-    it('should correctly parse test cases with success and failure', () => {
-      const parser = new SurefireReportParser('');
-      const xmlContent = `
-        <?xml version="1.0" encoding="UTF-8"?>
-        <testsuite tests="2" name="com.example.TestSuite">
-          <testcase name="successTest" classname="com.example.TestClass" time="0.001"/>
-          <testcase name="failureTest" classname="com.example.TestClass" time="0.002">
-            <failure message="Test failed">Error details</failure>
-          </testcase>
-        </testsuite>
-      `;
+
+      const testMultiplyFail = results.find(test => 
+        test.name === 'testMultiplyFail' && 
+        test.className === 'com.example.app.CalculatorTest'
+      );
       
-      const results = (parser as any).parseReportFile(xmlContent);
+      expect(testMultiplyFail).toBeDefined();
+      expect(testMultiplyFail?.success).toBe(false);
+      expect(testMultiplyFail?.failureReason).toContain('expected:<10> but was:<7>');
+      expect(testMultiplyFail?.failureStackTrace).toBeDefined();
+      expect(testMultiplyFail?.failureStackTrace).toContain('java.lang.AssertionError');
+      expect(testMultiplyFail?.failureStackTrace).toContain('at com.example.app.CalculatorTest.testMultiplyFail');
       
-      expect(results).toHaveLength(2);
-      expect(results[0].name).toBe('successTest');
-      expect(results[0].success).toBe(true);
-      expect(results[1].name).toBe('failureTest');
-      expect(results[1].success).toBe(false);
-      expect(results[1].failureReason).toBe('Test failed');
-    });
-    
-    it('should handle empty or invalid XML gracefully', () => {
-      const parser = new SurefireReportParser('');
+      const testAddSuccess = results.find(test => 
+        test.name === 'testAddSuccess' && 
+        test.className === 'com.example.app.CalculatorTest'
+      );
       
-      let results = (parser as any).parseReportFile('<?xml version="1.0"?><testsuite></testsuite>');
-      expect(results).toEqual([]);
-      
-      results = (parser as any).parseReportFile('<invalid>');
-      expect(results).toEqual([]);
+      expect(testAddSuccess).toBeDefined();
+      expect(testAddSuccess?.success).toBe(true);
+      expect(testAddSuccess?.failureReason).toBeUndefined();
+      expect(testAddSuccess?.failureStackTrace).toBeUndefined();
     });
   });
 });

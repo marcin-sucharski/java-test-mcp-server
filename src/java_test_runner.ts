@@ -1,9 +1,7 @@
-import path from "path";
-import fs from "fs";
 import { spawnSync } from "child_process";
 import { ProjectTypeChecker } from "./project_type_checker.js";
 
-class JavaTestRunner {
+export class JavaTestRunner {
     private readonly projectTypeChecker: ProjectTypeChecker;
 
     constructor(private readonly projectRoot: string) {
@@ -51,7 +49,7 @@ class JavaTestRunner {
     }
 
     private runCommand(command: string): { success: boolean, output: string } {
-        const result = spawnSync(command, { cwd: this.projectRoot, encoding: 'utf-8' });
-        return { success: result.status === 0, output: result.stdout.toString() };
+        const result = spawnSync(command, { cwd: this.projectRoot, encoding: 'utf-8', stdio: "pipe" });
+        return { success: result.status === 0, output: result.stdout?.toString() ?? "" };
     }
 }
