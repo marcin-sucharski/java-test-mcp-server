@@ -22,4 +22,14 @@ export class ProjectTypeChecker {
             throw new Error("Project is not a Maven or a Gradle project");
         }
     }
+    
+    public getCheckstyleReportPath(): string {
+        if (this.isMavenProject()) {
+            return path.join(this.projectRoot, "target", "checkstyle-result.xml");
+        } else if (this.isGradleProject()) {
+            return path.join(this.projectRoot, "build", "reports", "checkstyle", "main.xml");
+        } else {
+            throw new Error("Project is not a Maven or a Gradle project");
+        }
+    }
 } 

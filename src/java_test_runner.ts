@@ -26,7 +26,7 @@ export class JavaTestRunner {
     private compile(): { success: boolean, output: string } {
         let command: string;
         if (this.projectTypeChecker.isMavenProject()) {
-            command = 'mvn compile test:compile';
+            command = 'mvn compile test-compile';
         } else if (this.projectTypeChecker.isGradleProject()) {
             command = 'gradle compileJava compileTestJava';
         } else {
@@ -45,11 +45,11 @@ export class JavaTestRunner {
     }
 
     private runCommandWithoutOutput(command: string): void {
-        spawnSync(command, { cwd: this.projectRoot, stdio: 'ignore' });
+        spawnSync(command, { cwd: this.projectRoot, stdio: 'ignore', shell: true });
     }
 
     private runCommand(command: string): { success: boolean, output: string } {
-        const result = spawnSync(command, { cwd: this.projectRoot, encoding: 'utf-8', stdio: "pipe" });
-        return { success: result.status === 0, output: result.stdout?.toString() ?? "" };
+        const result = spawnSync(command, { cwd: this.projectRoot, stdio: "pipe", shell: true });
+        return { success: result.status === 0, output: result.stdout?.toString() ?? result.stderr?.toString() ?? "" };
     }
 }
