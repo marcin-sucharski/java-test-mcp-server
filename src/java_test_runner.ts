@@ -1,10 +1,14 @@
 import path from "path";
 import fs from "fs";
 import { spawnSync } from "child_process";
+import { ProjectTypeChecker } from "./project_type_checker.js";
 
 class JavaTestRunner {
+    private readonly projectTypeChecker: ProjectTypeChecker;
+
     constructor(private readonly projectRoot: string) {
-        if (!this.isMavenProject() && !this.isGradleProject()) {
+        this.projectTypeChecker = new ProjectTypeChecker(projectRoot);
+        if (!this.projectTypeChecker.isMavenProject() && !this.projectTypeChecker.isGradleProject()) {
             throw new Error("Project is not a Maven or a Gradle project");
         }
     }
@@ -23,9 +27,9 @@ class JavaTestRunner {
 
     private compile(): { success: boolean, output: string } {
         let command: string;
-        if (this.isMavenProject()) {
+        if (this.projectTypeChecker.isMavenProject()) {
             command = 'mvn compile test:compile';
-        } else if (this.isGradleProject()) {
+        } else if (this.projectTypeChecker.isGradleProject()) {
             command = 'gradle compileJava compileTestJava';
         } else {
             throw new Error("Project is not a Maven or a Gradle project");
@@ -35,20 +39,11 @@ class JavaTestRunner {
     }
 
     private runTests() {
-        if (this.isMavenProject()) {
+        if (this.projectTypeChecker.isMavenProject()) {
             this.runCommandWithoutOutput('mvn test');
         } else {
             this.runCommandWithoutOutput('gradle test');
         }
-    }
-
-    private isMavenProject() {
-        return fs.existsSync(path.join(this.projectRoot, "pom.xml"));
-    }
-
-    private isGradleProject() {
-        return fs.existsSync(path.join(this.projectRoot, "build.gradle"))
-            || fs.existsSync(path.join(this.projectRoot, "build.gradle.kts"));
     }
 
     private runCommandWithoutOutput(command: string): void {
