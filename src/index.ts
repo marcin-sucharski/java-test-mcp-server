@@ -13,7 +13,7 @@ async function main() {
     
     const server = new McpServer({
         name: "java-test-mcp-server",
-        version: "0.0.4",
+        version: "0.0.5",
     });
 
     server.tool(
@@ -24,12 +24,12 @@ async function main() {
         + "To include specific tests always in output (to e.g. check if test has been executed), specify showAlways parameter."
         + "If you want to get the full test output, use the get-test-output tool.",
         {
-            projectRoot: z.string().optional().describe("Override project root. If there are multiple projects in the root, specify the subdirectory."),
+            // projectRoot: z.string().optional().describe("Override project root. If there are multiple projects in the root, specify the subdirectory."),
             showAlways: z.array(z.string()).optional().describe("List of test names (method name in Java) to include in output even upon success")
         },
         async (params) => {
             try {
-                const projectRoot = params.projectRoot || defaultProjectRoot;
+                const projectRoot = /* params.projectRoot || */ defaultProjectRoot;
 
                 const testRunner = new JavaTestRunner(projectRoot);
                 testRunner.run();
@@ -118,13 +118,13 @@ async function main() {
         "get-test-output",
         "Get full test stdout output. Use this after run-tests if this output is needed for debugging.",
         {
-            projectRoot: z.string().optional().describe("Override project root. If there are multiple projects in the root, specify the subdirectory."),
+            // projectRoot: z.string().optional().describe("Override project root. If there are multiple projects in the root, specify the subdirectory."),
             className: z.string().describe("Name of the class to get output for"),
             testName: z.string().describe("Name of the test to get output for")
         },
         async (params) => {
             try {
-                const projectRoot = params.projectRoot || defaultProjectRoot;
+                const projectRoot = /* params.projectRoot || */ defaultProjectRoot;
                 const className = params.className;
                 const testName = params.testName;
 
