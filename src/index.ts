@@ -1,8 +1,14 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import { CheckstyleReportParser } from "./checkstyle_report_parser.js";
+import { JavaTestRunner } from "./java_test_runner.js";
+import { SurefireReportParser, TestReportEntry } from "./surefire_report_parser.js";
 
 async function main() {
+    const defaultProjectRoot = process.argv.length > 2 ? process.argv[2] : process.cwd();
+    console.error(`Using default project root: ${defaultProjectRoot}`);
+    
     const server = new McpServer({
         name: "java-test-mcp-server",
         version: "0.0.1",
@@ -16,16 +22,92 @@ async function main() {
         + "To include specific tests always in output (to e.g. check if test has been executed), specify showAlways parameter."
         + "If you want to get the full test output, use the get-test-output tool.",
         {
-            showAlways: z.array(z.string()).optional().describe("List of test names to include in output even upon success")
+            projectRoot: z.string().optional().describe("Override project root"),
+            showAlways: z.array(z.string()).optional().describe("List of test names (method name in Java) to include in output even upon success")
         },
-        async () => {
-            return {
-                content: [
-                    {
-                        type: "text",
-                        text: "Running tests..."
+        async (params) => {
+            try {
+                const projectRoot = params.projectRoot || defaultProjectRoot;
+
+                const testRunner = new JavaTestRunner(projectRoot);
+                testRunner.run();
+                
+                const reportParser = new SurefireReportParser(projectRoot);
+                const testResults = reportParser.parseReports();
+                
+                const checkstyleParser = new CheckstyleReportParser(projectRoot);
+                const checkstyleViolations = checkstyleParser.parseReport();
+                
+                const showAlways = params.showAlways || [];
+                const testsInReport = testResults.filter(test => !test.success || showAlways.includes(test.name));
+                
+                if (testsInReport.length === 0 && checkstyleViolations.length === 0) {
+                    return {
+                        content: [
+                            {
+                                type: "text",
+                                text: "All tests passed successfully."
+                            }
+                        ]
+                    };
+                }
+                
+                let responseText = "";
+
+                if (checkstyleViolations.length > 0) {
+                    responseText += "# Checkstyle violations:\n\n";
+                    checkstyleViolations.forEach(violation => {
+                        responseText += `${violation.fileName}:${violation.line} - ${violation.severity}: ${violation.message}\n`;
+                    });
+                }
+                
+                if (testsInReport.length > 0) {
+                    responseText += "# Tests results:\n\n";
+                    
+                    // Group tests by class name
+                    const testsByClass = new Map<string, TestReportEntry[]>();
+                    testsInReport.forEach(test => {
+                        if (!testsByClass.has(test.className)) {
+                            testsByClass.set(test.className, []);
+                        }
+                        testsByClass.get(test.className)!.push(test);
+                    });
+                    
+                    // Display tests grouped by class
+                    for (const [className, tests] of testsByClass.entries()) {
+                        responseText += `## ${className}\n\n`;
+                        
+                        tests.forEach(test => {
+                            responseText += `### ${test.name}: ${test.success ? 'SUCCESS' : 'FAILED'}\n`;
+                            if (!test.success && test.failureReason) {
+                                responseText += `Reason: ${test.failureReason}\n`;
+                                
+                                if (test.failureDetails) {
+                                    responseText += `Stack trace: ${test.failureDetails}\n`;
+                                }
+                            }
+                            responseText += "\n";
+                        });
                     }
-                ]
+                }
+                
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: responseText
+                        }
+                    ]
+                };
+            } catch (error: any) {
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: `Error running tests: ${error.message}`
+                        }
+                    ]
+                };
             }
         }
     );
@@ -34,16 +116,37 @@ async function main() {
         "get-test-output",
         "Get full test stdout output. Use this after run-tests if this output is needed for debugging.",
         {
-            testName: z.string().optional().describe("Name of the test to get output for")
+            projectRoot: z.string().optional().describe("Override project root"),
+            className: z.string().describe("Name of the class to get output for"),
+            testName: z.string().describe("Name of the test to get output for")
         },
-        async () => {
-            return {
-                content: [
-                    {
-                        type: "text",
-                        text: "Test output..."
-                    }
-                ]
+        async (params) => {
+            try {
+                const projectRoot = params.projectRoot || defaultProjectRoot;
+                const className = params.className;
+                const testName = params.testName;
+
+                const reportParser = new SurefireReportParser(projectRoot);
+                const testResults = reportParser.parseReports();
+                
+                const testResult = testResults.find(test => test.name === testName && test.className === className);
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: "Test output functionality not fully implemented yet."
+                        }
+                    ]
+                };
+            } catch (error: any) {
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: `Error getting test output: ${error.message}`
+                        }
+                    ]
+                };
             }
         }
     )

@@ -22,9 +22,9 @@ describe('SurefireReportParser', () => {
       expect(testSubtractFail).toBeDefined();
       expect(testSubtractFail?.success).toBe(false);
       expect(testSubtractFail?.failureReason).toContain('expected:<0> but was:<3>');
-      expect(testSubtractFail?.failureStackTrace).toBeDefined();
-      expect(testSubtractFail?.failureStackTrace).toContain('java.lang.AssertionError');
-      expect(testSubtractFail?.failureStackTrace).toContain('at com.example.app.CalculatorTest.testSubtractFail');
+      expect(testSubtractFail?.failureDetails).toBeDefined();
+      expect(testSubtractFail?.failureDetails).toContain('java.lang.AssertionError');
+      expect(testSubtractFail?.failureDetails).toContain('at com.example.app.CalculatorTest.testSubtractFail');
       
       const testAddSuccess = results.find(test => 
         test.name === 'testAddSuccess' && 
@@ -34,7 +34,7 @@ describe('SurefireReportParser', () => {
       expect(testAddSuccess).toBeDefined();
       expect(testAddSuccess?.success).toBe(true);
       expect(testAddSuccess?.failureReason).toBeUndefined();
-      expect(testAddSuccess?.failureStackTrace).toBeUndefined();
+      expect(testAddSuccess?.failureDetails).toBeUndefined();
     });
   });
   
@@ -63,9 +63,9 @@ describe('SurefireReportParser', () => {
       expect(testMultiplyFail).toBeDefined();
       expect(testMultiplyFail?.success).toBe(false);
       expect(testMultiplyFail?.failureReason).toContain('expected:<10> but was:<7>');
-      expect(testMultiplyFail?.failureStackTrace).toBeDefined();
-      expect(testMultiplyFail?.failureStackTrace).toContain('java.lang.AssertionError');
-      expect(testMultiplyFail?.failureStackTrace).toContain('at com.example.app.CalculatorTest.testMultiplyFail');
+      expect(testMultiplyFail?.failureDetails).toBeDefined();
+      expect(testMultiplyFail?.failureDetails).toContain('java.lang.AssertionError');
+      expect(testMultiplyFail?.failureDetails).toContain('at com.example.app.CalculatorTest.testMultiplyFail');
       
       const testAddSuccess = results.find(test => 
         test.name === 'testAddSuccess' && 
@@ -75,7 +75,7 @@ describe('SurefireReportParser', () => {
       expect(testAddSuccess).toBeDefined();
       expect(testAddSuccess?.success).toBe(true);
       expect(testAddSuccess?.failureReason).toBeUndefined();
-      expect(testAddSuccess?.failureStackTrace).toBeUndefined();
+      expect(testAddSuccess?.failureDetails).toBeUndefined();
     });
   });
 });
