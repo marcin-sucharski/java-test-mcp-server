@@ -26,9 +26,9 @@ export class JavaTestRunner {
     private compile(): { success: boolean, output: string } {
         let command: string;
         if (this.projectTypeChecker.isMavenProject()) {
-            command = 'mvn compile test-compile';
+            command = `mvn -f ${this.projectRoot}/pom.xml compile test-compile`;
         } else if (this.projectTypeChecker.isGradleProject()) {
-            command = 'gradle compileJava compileTestJava';
+            command = `gradle --project-dir ${this.projectRoot} compileJava compileTestJava`;
         } else {
             throw new Error("Project is not a Maven or a Gradle project");
         }
