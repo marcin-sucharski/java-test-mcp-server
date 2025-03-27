@@ -1,6 +1,6 @@
 {
   "name": "java-test-mcp-server",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "MCP server for running Java tests",
   "author": "Marcin Sucharski",
   "license": "ISC",

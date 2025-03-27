@@ -38,9 +38,9 @@ export class JavaTestRunner {
 
     private runTests() {
         if (this.projectTypeChecker.isMavenProject()) {
-            this.runCommandWithoutOutput('mvn test');
+            this.runCommandWithoutOutput(`mvn -f ${this.projectRoot}/pom.xml test`);
         } else {
-            this.runCommandWithoutOutput('gradle test');
+            this.runCommandWithoutOutput(`gradle --project-dir ${this.projectRoot} test`);
         }
     }
 
