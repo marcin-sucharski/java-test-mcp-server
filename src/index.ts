@@ -3,6 +3,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import path from "path";
 import { CheckstyleReportParser } from "./checkstyle_report_parser.js";
 import { JavaTestRunner } from "./java_test_runner.js";
 import { SurefireReportParser, TestReportEntry } from "./surefire_report_parser.js";
@@ -24,20 +25,21 @@ async function main() {
         + "To include specific tests always in output (to e.g. check if test has been executed), specify showAlways parameter."
         + "If you want to get the full test output, use the get-test-output tool.",
         {
-            // projectRoot: z.string().optional().describe("Override project root. If there are multiple projects in the root, specify the subdirectory."),
+            projectRoot: z.string().optional().describe("Override project root. If there are multiple projects in the root, specify the subdirectory."),
             showAlways: z.array(z.string()).optional().describe("List of test names (method name in Java) to include in output even upon success")
         },
         async (params) => {
             try {
-                const projectRoot = /* params.projectRoot || */ defaultProjectRoot;
+                const projectRoot = params.projectRoot || defaultProjectRoot;
+                const resolvedProjectRoot = path.resolve(projectRoot);
 
-                const testRunner = new JavaTestRunner(projectRoot);
+                const testRunner = new JavaTestRunner(resolvedProjectRoot);
                 testRunner.run();
                 
-                const reportParser = new SurefireReportParser(projectRoot);
+                const reportParser = new SurefireReportParser(resolvedProjectRoot);
                 const testResults = reportParser.parseReports();
                 
-                const checkstyleParser = new CheckstyleReportParser(projectRoot);
+                const checkstyleParser = new CheckstyleReportParser(resolvedProjectRoot);
                 const checkstyleViolations = checkstyleParser.parseReport();
                 
                 const showAlways = params.showAlways || [];
@@ -118,17 +120,18 @@ async function main() {
         "get-test-output",
         "Get full test stdout output. Use this after run-tests if this output is needed for debugging.",
         {
-            // projectRoot: z.string().optional().describe("Override project root. If there are multiple projects in the root, specify the subdirectory."),
+            projectRoot: z.string().optional().describe("Override project root. If there are multiple projects in the root, specify the subdirectory."),
             className: z.string().describe("Name of the class to get output for"),
             testName: z.string().describe("Name of the test to get output for")
         },
         async (params) => {
             try {
-                const projectRoot = /* params.projectRoot || */ defaultProjectRoot;
+                const projectRoot = params.projectRoot || defaultProjectRoot;
+                const resolvedProjectRoot = path.resolve(projectRoot);
                 const className = params.className;
                 const testName = params.testName;
 
-                const reportParser = new SurefireReportParser(projectRoot);
+                const reportParser = new SurefireReportParser(resolvedProjectRoot);
                 const testResults = reportParser.parseReports();
                 
                 const testResult = testResults.find(test => test.name === testName && test.className === className);
