@@ -14,7 +14,7 @@ export class JavaTestRunner {
         }
     }
 
-    public run() {
+    public run(testPattern?: string) {
         const compileResult = this.compile();
         if (!compileResult.success) {
             return {
@@ -23,7 +23,7 @@ export class JavaTestRunner {
             };
         }
 
-        this.runTests();
+        this.runTests(testPattern);
     }
 
     private compile(): { success: boolean, output: string } {
@@ -39,11 +39,19 @@ export class JavaTestRunner {
         return this.runCommand(command);
     }
 
-    private runTests() {
+    private runTests(testPattern?: string) {
         if (this.projectTypeChecker.isMavenProject()) {
-            this.runCommandWithoutOutput(`mvn -f ${this.absoluteProjectRoot}/pom.xml test`);
+            let command = `mvn -f ${this.absoluteProjectRoot}/pom.xml test`;
+            if (testPattern) {
+                command += ` -Dtest=${testPattern}`;
+            }
+            this.runCommandWithoutOutput(command);
         } else {
-            this.runCommandWithoutOutput(`gradle --project-dir ${this.absoluteProjectRoot} test`);
+            let command = `gradle --project-dir ${this.absoluteProjectRoot} test`;
+            if (testPattern) {
+                command += ` --tests ${testPattern}`;
+            }
+            this.runCommandWithoutOutput(command);
         }
     }
 

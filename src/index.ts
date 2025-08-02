@@ -23,10 +23,13 @@ async function main() {
         + "Upon failure, only failed assertions are reported. "
         + "Successfull tests are not reported. "
         + "To include specific tests always in output (to e.g. check if test has been executed), specify showAlways parameter."
-        + "If you want to get the full test output, use the get-test-output tool.",
+        + "If you want to get the full test output, use the get-test-output tool. "
+        + "Use testPattern to run specific tests - examples: 'MyTestClass' (single class), 'com.example.*' (package), "
+        + "'**/integration/**' (directory pattern), 'MyTestClass#testMethod' (specific method).",
         {
             projectRoot: z.string().optional().describe("Override project root. If there are multiple projects in the root, specify the subdirectory."),
-            showAlways: z.array(z.string()).optional().describe("List of test names (method name in Java) to include in output even upon success")
+            showAlways: z.array(z.string()).optional().describe("List of test names (method name in Java) to include in output even upon success"),
+            testPattern: z.string().optional().describe("Test pattern to select specific tests to run. Examples: 'MyTestClass', 'com.example.*', '**/integration/**', 'MyTestClass#testMethod' (Maven: -Dtest=pattern, Gradle: --tests pattern)")
         },
         async (params) => {
             try {
@@ -34,7 +37,7 @@ async function main() {
                 const resolvedProjectRoot = path.resolve(projectRoot);
 
                 const testRunner = new JavaTestRunner(resolvedProjectRoot);
-                testRunner.run();
+                testRunner.run(params.testPattern);
                 
                 const reportParser = new SurefireReportParser(resolvedProjectRoot);
                 const testResults = reportParser.parseReports();
